@@ -8,9 +8,9 @@ import java.util.zip.Inflater;
 
 public class BtwExtractor {
 
-    private static final byte[] BTW_MAGIC_SEQUENCE = { (byte) 0x0D, 0x0A, 'B', 'a', 'r', ' ', 'T', 'e', 'n', 'd', 'e', 'r', ' ', 'F', 'o', 'r', 'm', 'a', 't', ' ', 'F', 'i', 'l', 'e', 0x0D, 0x0A };
-    private static final byte[] PNG_MAGIC_START = { (byte) 0x89, 'P', 'N', 'G', 0x0D, 0x0A, 0x1A, 0x0A };
-    private static final byte[] PNG_MAGIC_END = { 0x00, 0x00, 0x00, 0x00, 'I', 'E', 'N', 'D', (byte) 0xAE, 0x42, 0x60, (byte) 0x82 };
+    private static final byte[] BTW_MAGIC_SEQUENCE = {(byte) 0x0D, 0x0A, 'B', 'a', 'r', ' ', 'T', 'e', 'n', 'd', 'e', 'r', ' ', 'F', 'o', 'r', 'm', 'a', 't', ' ', 'F', 'i', 'l', 'e', 0x0D, 0x0A};
+    private static final byte[] PNG_MAGIC_START = {(byte) 0x89, 'P', 'N', 'G', 0x0D, 0x0A, 0x1A, 0x0A};
+    private static final byte[] PNG_MAGIC_END = {0x00, 0x00, 0x00, 0x00, 'I', 'E', 'N', 'D', (byte) 0xAE, 0x42, 0x60, (byte) 0x82};
     private static final byte[] ZLIB_MAGIC = {0x00, 0x01};
 
     public static void main(String[] args) throws Exception {
