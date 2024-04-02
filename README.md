@@ -1,0 +1,2 @@
+# BtwExtractor
+提取Seagull Scientific的BarTender生成的条形码和标签BTW文件的数据
