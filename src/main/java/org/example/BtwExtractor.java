@@ -14,7 +14,7 @@ public class BtwExtractor {
     private static final byte[] ZLIB_MAGIC = {0x00, 0x01};
 
     public static void main(String[] args) throws Exception {
-        String filename = "D:\\Test\\test.btw";
+        String filename = "test.btw";
 
         byte[] fileData;
         try (FileInputStream fileInputStream = new FileInputStream(filename);
