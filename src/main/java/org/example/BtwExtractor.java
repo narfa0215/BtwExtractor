@@ -137,8 +137,17 @@ public class BtwExtractor {
         int shareNameStartIndex = -1;
         while ((shareNameStartIndex = findSequence(containerData, SHARE_NAME_SEQUENCE, shareNameStartIndex + 1)) != -1) {
             int nextStringSequenceStartIndex = findNextStringSequence(containerData, shareNameStartIndex);
-            String stringFromStringSequence = getStringFromStringSequence(containerData, nextStringSequenceStartIndex);
-            System.out.println(stringFromStringSequence);
+            String namedSubStringName = getStringFromStringSequence(containerData, nextStringSequenceStartIndex);
+            for (int i = 0; ;i++){
+                if ((nextStringSequenceStartIndex = findNextStringSequence(containerData, nextStringSequenceStartIndex + 1)) == -1) {
+                    break;
+                }
+                if (i >= 22) {
+                    String namedSubStringValue = getStringFromStringSequence(containerData, nextStringSequenceStartIndex);
+                    System.out.println(namedSubStringName + ":" + namedSubStringValue);
+                    break;
+                }
+            }
         }
     }
 
