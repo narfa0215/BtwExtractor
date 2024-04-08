@@ -14,6 +14,7 @@ public class BtwExtractor {
     private static final byte[] PNG_END_MAGIC_SEQUENCE = {0x00, 0x00, 0x00, 0x00, 'I', 'E', 'N', 'D', (byte) 0xAE, 0x42, 0x60, (byte) 0x82};
     private static final byte[] ZLIB_MAGIC_SEQUENCE = {0x00, 0x01};
     private static final byte[] SHARE_NAME_SEQUENCE = {'S', '\0', 'h', '\0', 'a', '\0', 'r', '\0', 'e', '\0', ' ', '\0', 'N', '\0', 'a', '\0', 'm', '\0', 'e', '\0'};
+    private static final byte[] SCREEN_DATA_SEQUENCE = {'S', '\0', 'c', '\0', 'r', '\0', 'e', '\0', 'e', '\0', 'n', '\0', ' ', '\0', 'D', '\0', 'a', '\0', 't', '\0', 'a', '\0'};
     private static final byte[] STRING_SEQUENCE = {(byte) 0xFF, (byte) 0xFE, (byte) 0xFF};
     private static final byte[] STRING_EXTENDED_SEQUENCE = {(byte) 0xFF, (byte) 0xFE, (byte) 0xFF, (byte) 0xFF};
     private static final int STRING_SEQUENCE_LENGTH_TYPE_LENGTH = 1;
@@ -133,11 +134,23 @@ public class BtwExtractor {
             }
         }
 
-        // Find shareName data
-        int shareNameStartIndex = -1;
-        while ((shareNameStartIndex = findSequence(containerData, SHARE_NAME_SEQUENCE, shareNameStartIndex + 1)) != -1) {
-            int nextStringSequenceStartIndex = findNextStringSequence(containerData, shareNameStartIndex);
+        // Find flag string data
+        for (int flagStringStartIndex = -1; ;) {
+            int shareNameStartIndex = findSequence(containerData, SHARE_NAME_SEQUENCE, flagStringStartIndex + 1);
+            int screenDataStartIndex = findSequence(containerData, SCREEN_DATA_SEQUENCE, flagStringStartIndex + 1);
+            if (shareNameStartIndex != -1 && screenDataStartIndex != -1) {
+                flagStringStartIndex = Math.min(shareNameStartIndex, screenDataStartIndex);
+            } else {
+                flagStringStartIndex = shareNameStartIndex != -1 ? shareNameStartIndex : screenDataStartIndex;
+            }
+            if (flagStringStartIndex == -1) {
+                break;
+            }
+            int nextStringSequenceStartIndex = findNextStringSequence(containerData, flagStringStartIndex);
             String namedSubStringName = getStringFromStringSequence(containerData, nextStringSequenceStartIndex);
+            if (namedSubStringName != null && namedSubStringName.isEmpty()) {
+                continue;
+            }
             for (int i = 0; ;i++){
                 if ((nextStringSequenceStartIndex = findNextStringSequence(containerData, nextStringSequenceStartIndex + 1)) == -1) {
                     break;
