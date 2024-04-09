@@ -69,7 +69,7 @@ public class BtwExtractor {
         if (isExtract) {
             // Write preview PNG image to file
             try (FileOutputStream previewPngOutputStream = new FileOutputStream("preview.png")) {
-                previewPngOutputStream.write(fileData, previewPngStartIndex, previewPngEndIndex - previewPngStartIndex);
+                previewPngOutputStream.write(fileData, previewPngStartIndex, previewPngEndIndex + PNG_END_MAGIC_SEQUENCE.length - previewPngStartIndex);
                 System.out.println("Preview PNG image extracted successfully.");
             } catch (IOException e) {
                 System.err.println("Error writing preview PNG image to file: " + e.getMessage());
@@ -87,7 +87,7 @@ public class BtwExtractor {
         if (isExtract) {
             // Write mask PNG image to file
             try (FileOutputStream maskPngOutputStream = new FileOutputStream("mask.png")) {
-                maskPngOutputStream.write(fileData, maskPngStartIndex, maskPngEndIndex - maskPngStartIndex);
+                maskPngOutputStream.write(fileData, maskPngStartIndex, maskPngEndIndex + PNG_END_MAGIC_SEQUENCE.length - maskPngStartIndex);
                 System.out.println("Mask PNG image extracted successfully.");
             } catch (IOException e) {
                 System.err.println("Error writing mask PNG image to file: " + e.getMessage());
