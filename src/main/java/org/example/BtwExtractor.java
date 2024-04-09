@@ -59,7 +59,7 @@ public class BtwExtractor {
         }
 
         // Find preview PNG image
-        int previewPngStartIndex = findSequence(fileData, PNG_START_MAGIC_SEQUENCE, prefixStartIndex);
+        int previewPngStartIndex = findSequence(fileData, PNG_START_MAGIC_SEQUENCE, prefixEndIndex);
         int previewPngEndIndex = findSequence(fileData, PNG_END_MAGIC_SEQUENCE, previewPngStartIndex);
         if (previewPngStartIndex == -1 || previewPngEndIndex == -1) {
             System.err.println("Preview PNG image not found.");
