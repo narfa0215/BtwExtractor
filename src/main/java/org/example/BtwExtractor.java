@@ -165,6 +165,9 @@ public class BtwExtractor {
     }
 
     private static int findSequence(byte[] data, byte[] sequence, int startIndex) {
+        if (startIndex < 0 || startIndex > data.length - sequence.length) {
+            return -1;
+        }
         for (int i = startIndex; i < data.length - sequence.length + 1; i++) {
             boolean found = true;
             for (int j = 0; j < sequence.length; j++) {
@@ -181,10 +184,13 @@ public class BtwExtractor {
     }
 
     private static int findSequenceReverse(byte[] data, byte[] sequence, int endIndex) {
-        for (int i = endIndex - sequence.length + 1; i >= 0; i--) {
+        if (endIndex < 0 || endIndex > data.length) {
+            return -1;
+        }
+        for (int i = endIndex - sequence.length; i >= 0; i--) {
             boolean found = true;
             for (int j = 0; j < sequence.length; j++) {
-                if (i + j >= data.length || data[i + j] != sequence[j]) {
+                if (data[i + j] != sequence[j]) {
                     found = false;
                     break;
                 }
