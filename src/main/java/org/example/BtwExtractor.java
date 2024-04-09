@@ -22,7 +22,7 @@ public class BtwExtractor {
     private static final int STRING_SEQUENCE_LENGTH_TYPE_LENGTH = 1;
     private static final int STRING_EXTENDED_SEQUENCE_LENGTH_TYPE_LENGTH = 2;
     public static void main(String[] args) throws Exception {
-        String filename = "test.btw";
+        String filename = "test2.btw";
         boolean isExtract = true;
 
         byte[] fileData;
@@ -63,10 +63,10 @@ public class BtwExtractor {
         int previewPngEndIndex = findSequence(fileData, PNG_END_MAGIC_SEQUENCE, previewPngStartIndex);
         if (previewPngStartIndex == -1 || previewPngEndIndex == -1) {
             System.err.println("Preview PNG image not found.");
-            return;
+            previewPngEndIndex = prefixEndIndex;
         }
 
-        if (isExtract) {
+        if (isExtract && previewPngStartIndex != -1) {
             // Write preview PNG image to file
             try (FileOutputStream previewPngOutputStream = new FileOutputStream("preview.png")) {
                 previewPngOutputStream.write(fileData, previewPngStartIndex, previewPngEndIndex + PNG_END_MAGIC_SEQUENCE.length - previewPngStartIndex);
@@ -81,10 +81,10 @@ public class BtwExtractor {
         int maskPngEndIndex = findSequence(fileData, PNG_END_MAGIC_SEQUENCE, maskPngStartIndex);
         if (maskPngStartIndex == -1 || maskPngEndIndex == -1) {
             System.err.println("Mask PNG image not found.");
-            return;
+            maskPngEndIndex = previewPngEndIndex;
         }
 
-        if (isExtract) {
+        if (isExtract && maskPngStartIndex != -1) {
             // Write mask PNG image to file
             try (FileOutputStream maskPngOutputStream = new FileOutputStream("mask.png")) {
                 maskPngOutputStream.write(fileData, maskPngStartIndex, maskPngEndIndex + PNG_END_MAGIC_SEQUENCE.length - maskPngStartIndex);
