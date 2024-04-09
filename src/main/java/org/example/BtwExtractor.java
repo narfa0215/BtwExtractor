@@ -15,6 +15,7 @@ public class BtwExtractor {
     private static final byte[] ZLIB_MAGIC_SEQUENCE = {0x00, 0x01};
     private static final byte[] SHARE_NAME_SEQUENCE = {'S', '\0', 'h', '\0', 'a', '\0', 'r', '\0', 'e', '\0', ' ', '\0', 'N', '\0', 'a', '\0', 'm', '\0', 'e', '\0'};
     private static final byte[] SCREEN_DATA_SEQUENCE = {'S', '\0', 'c', '\0', 'r', '\0', 'e', '\0', 'e', '\0', 'n', '\0', ' ', '\0', 'D', '\0', 'a', '\0', 't', '\0', 'a', '\0'};
+    private static final byte[] EMBEDDED_SUBSTRING_SEQUENCE = {(byte) 0xFF, (byte) 0xFF, 0x03, (byte) 0x80};
     private static final byte[] STRING_SEQUENCE = {(byte) 0xFF, (byte) 0xFE, (byte) 0xFF};
     private static final byte[] STRING_EXTENDED_SEQUENCE = {(byte) 0xFF, (byte) 0xFE, (byte) 0xFF, (byte) 0xFF};
     private static final int STRING_SEQUENCE_LENGTH_TYPE_LENGTH = 1;
@@ -143,16 +144,35 @@ public class BtwExtractor {
 
         // Find flag string data
         for (int flagStringStartIndex = -1; ;) {
+            int minFlagStringStartIndex = -1;
             int shareNameStartIndex = findSequence(containerData, SHARE_NAME_SEQUENCE, flagStringStartIndex + 1);
             int screenDataStartIndex = findSequence(containerData, SCREEN_DATA_SEQUENCE, flagStringStartIndex + 1);
-            if (shareNameStartIndex != -1 && screenDataStartIndex != -1) {
-                flagStringStartIndex = Math.min(shareNameStartIndex, screenDataStartIndex);
-            } else {
-                flagStringStartIndex = shareNameStartIndex != -1 ? shareNameStartIndex : screenDataStartIndex;
+            int embeddedSubstringStartIndex = findSequence(containerData, EMBEDDED_SUBSTRING_SEQUENCE, flagStringStartIndex + 1);
+            if (shareNameStartIndex != -1) {
+                if (minFlagStringStartIndex != -1) {
+                    minFlagStringStartIndex = Math.min(minFlagStringStartIndex, shareNameStartIndex);
+                } else {
+                    minFlagStringStartIndex = shareNameStartIndex;
+                }
             }
-            if (flagStringStartIndex == -1) {
+            if (screenDataStartIndex != -1) {
+                if (minFlagStringStartIndex != -1) {
+                    minFlagStringStartIndex = Math.min(minFlagStringStartIndex, screenDataStartIndex);
+                } else {
+                    minFlagStringStartIndex = screenDataStartIndex;
+                }
+            }
+            if (embeddedSubstringStartIndex != -1) {
+                if (minFlagStringStartIndex != -1) {
+                    minFlagStringStartIndex = Math.min(minFlagStringStartIndex, embeddedSubstringStartIndex);
+                } else {
+                    minFlagStringStartIndex = embeddedSubstringStartIndex;
+                }
+            }
+            if (minFlagStringStartIndex == -1) {
                 break;
             }
+            flagStringStartIndex = minFlagStringStartIndex;
             int nextStringSequenceStartIndex = findNextStringSequence(containerData, flagStringStartIndex);
             String namedSubStringName = getStringFromStringSequence(containerData, nextStringSequenceStartIndex);
             if (namedSubStringName != null && namedSubStringName.isEmpty()) {
