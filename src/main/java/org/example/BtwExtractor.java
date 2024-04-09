@@ -9,7 +9,9 @@ import java.util.zip.Inflater;
 
 public class BtwExtractor {
 
-    private static final byte[] BTW_MAGIC_SEQUENCE = {(byte) 0x0D, 0x0A, 'B', 'a', 'r', ' ', 'T', 'e', 'n', 'd', 'e', 'r', ' ', 'F', 'o', 'r', 'm', 'a', 't', ' ', 'F', 'i', 'l', 'e', 0x0D, 0x0A};
+    private static final byte[] PREFIX_START_MAGIC_SEQUENCE = {(byte) 0x0D, 0x0A, 'B', 'a', 'r', ' ', 'T', 'e', 'n', 'd', 'e', 'r', ' ', 'F', 'o', 'r', 'm', 'a', 't', ' ', 'F', 'i', 'l', 'e', 0x0D, 0x0A};
+    private static final byte[] PREFIX_END_MAGIC_SEQUENCE = {(byte) 0xFF, (byte) 0xFE, (byte) 0xFF, 0x00};
+    private static final byte[] PADDING_MAGIC_SEQUENCE = {0x00, 0x00, 0x00, 0x00};
     private static final byte[] PNG_START_MAGIC_SEQUENCE = {(byte) 0x89, 'P', 'N', 'G', 0x0D, 0x0A, 0x1A, 0x0A};
     private static final byte[] PNG_END_MAGIC_SEQUENCE = {0x00, 0x00, 0x00, 0x00, 'I', 'E', 'N', 'D', (byte) 0xAE, 0x42, 0x60, (byte) 0x82};
     private static final byte[] ZLIB_MAGIC_SEQUENCE = {0x00, 0x01};
@@ -38,29 +40,30 @@ public class BtwExtractor {
             return;
         }
 
-        // Find BTW magic sequence
-        int btwStartIndex = findSequence(fileData, BTW_MAGIC_SEQUENCE, 0);
-        if (btwStartIndex == -1) {
-            System.err.println("BTW magic sequence not found in the file.");
-            return;
-        }
-
-        // Extract preview PNG image
-        int previewPngStartIndex = findSequence(fileData, PNG_START_MAGIC_SEQUENCE, btwStartIndex);
-        int previewPngEndIndex = findSequence(fileData, PNG_END_MAGIC_SEQUENCE, previewPngStartIndex);
-        if (previewPngStartIndex == -1 || previewPngEndIndex == -1) {
-            System.err.println("Preview PNG image not found.");
+        // Find prefix data
+        int prefixStartIndex = findSequence(fileData, PREFIX_START_MAGIC_SEQUENCE, 0);
+        int prefixEndIndex = findSequence(fileData, PREFIX_END_MAGIC_SEQUENCE, prefixStartIndex);
+        if (prefixStartIndex == -1 || prefixEndIndex == -1) {
+            System.err.println("Prefix data not found.");
             return;
         }
 
         if (isExtract) {
             // Write prefix data to file
             try (FileOutputStream prefixOutputStream = new FileOutputStream("prefix.bin")) {
-                prefixOutputStream.write(fileData, btwStartIndex, previewPngStartIndex - btwStartIndex);
+                prefixOutputStream.write(fileData, prefixStartIndex, prefixEndIndex + PREFIX_END_MAGIC_SEQUENCE.length - prefixStartIndex);
                 System.out.println("Prefix data extracted successfully.");
             } catch (IOException e) {
                 System.err.println("Error writing prefix data to file: " + e.getMessage());
             }
+        }
+
+        // Find preview PNG image
+        int previewPngStartIndex = findSequence(fileData, PNG_START_MAGIC_SEQUENCE, prefixStartIndex);
+        int previewPngEndIndex = findSequence(fileData, PNG_END_MAGIC_SEQUENCE, previewPngStartIndex);
+        if (previewPngStartIndex == -1 || previewPngEndIndex == -1) {
+            System.err.println("Preview PNG image not found.");
+            return;
         }
 
         if (isExtract) {
@@ -73,6 +76,7 @@ public class BtwExtractor {
             }
         }
 
+        // Find mask PNG image
         int maskPngStartIndex = findSequence(fileData, PNG_START_MAGIC_SEQUENCE, previewPngEndIndex);
         int maskPngEndIndex = findSequence(fileData, PNG_END_MAGIC_SEQUENCE, maskPngStartIndex);
         if (maskPngStartIndex == -1 || maskPngEndIndex == -1) {
@@ -81,7 +85,7 @@ public class BtwExtractor {
         }
 
         if (isExtract) {
-            // Write extracted PNG image to file
+            // Write mask PNG image to file
             try (FileOutputStream maskPngOutputStream = new FileOutputStream("mask.png")) {
                 maskPngOutputStream.write(fileData, maskPngStartIndex, maskPngEndIndex - maskPngStartIndex);
                 System.out.println("Mask PNG image extracted successfully.");
@@ -93,7 +97,7 @@ public class BtwExtractor {
         // Find zlib data
         int zlibStartIndex = findSequence(fileData, ZLIB_MAGIC_SEQUENCE, maskPngEndIndex);
         if (zlibStartIndex == -1) {
-            System.err.println("Zlib magic sequence not found in the file.");
+            System.err.println("Zlib data not found.");
             return;
         }
 
@@ -177,6 +181,25 @@ public class BtwExtractor {
                 }
             }
             if (found) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    private static int skipPadding(byte[] data, int startIndex) {
+        if (startIndex < 0 || startIndex > data.length - PADDING_MAGIC_SEQUENCE.length) {
+            return -1;
+        }
+        for (int i = startIndex; i < data.length - PADDING_MAGIC_SEQUENCE.length + 1; i += PADDING_MAGIC_SEQUENCE.length) {
+            boolean found = true;
+            for (int j = 0; j < PADDING_MAGIC_SEQUENCE.length; j++) {
+                if (data[i + j] != PADDING_MAGIC_SEQUENCE[j]) {
+                    found = false;
+                    break;
+                }
+            }
+            if (!found) {
                 return i;
             }
         }
