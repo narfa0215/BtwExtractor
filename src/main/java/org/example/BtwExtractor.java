@@ -91,14 +91,7 @@ public class BtwExtractor {
             }
         }
 
-        int pngPaddingStartIndex = skipPadding(fileData, maskPngEndIndex);
-
-        if (pngPaddingStartIndex == -1) {
-            System.err.println("PNG image padding not found.");
-            return;
-        }
-
-        int zlibStartIndex = skipZlib(fileData, pngPaddingStartIndex);
+        int zlibStartIndex = skipZlib(fileData, maskPngEndIndex);
 
         if (zlibStartIndex == -1) {
             System.err.println("Zlib data not found.");
